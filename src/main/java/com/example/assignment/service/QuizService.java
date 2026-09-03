@@ -1,10 +1,9 @@
 package com.example.assignment.service;
 
+import com.example.assignment.Dto.*;
 import com.example.assignment.client.OpenTriviaClient;
 import com.example.assignment.client.OpenTriviaQuestion;
 import com.example.assignment.client.OpenTriviaResponse;
-import com.example.assignment.Dto.QuestionResponse;
-import com.example.assignment.Dto.QuizResponse;
 import com.example.assignment.model.QuizSession;
 import org.springframework.stereotype.Service;
 
@@ -61,5 +60,44 @@ public class QuizService {
         quizSessions.put(quizId, quizSession);
 
         return new QuizResponse(quizId, questions);
+    }
+
+    public CheckAnswersResponse checkAnswers(CheckAnswerRequest request) {
+        QuizSession quizSession = quizSessions.get(request.quizId());
+
+        if (quizSession == null) {
+            throw new IllegalArgumentException("Quiz not found");
+        }
+
+        List<AnswerResult> results = new ArrayList<>();
+        int score = 0;
+
+        for (AnswerRequest submittedAnswer : request.answers()) {
+
+            String correctAnswer =
+                    quizSession.correctAnswers()
+                            .get(submittedAnswer.questionId());
+
+            boolean correct =
+                    correctAnswer.equals(submittedAnswer.answer());
+
+            if (correct) {
+                score++;
+            }
+
+            results.add(
+                    new AnswerResult(
+                            submittedAnswer.questionId(),
+                            correct,
+                            correctAnswer
+                    )
+            );
+        }
+
+        return new CheckAnswersResponse(
+                score,
+                request.answers().size(),
+                results
+        );
     }
 }
