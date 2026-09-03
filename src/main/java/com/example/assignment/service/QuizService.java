@@ -72,6 +72,7 @@ public class QuizService {
         List<AnswerResult> results = new ArrayList<>();
         int score = 0;
 
+
         for (AnswerRequest submittedAnswer : request.answers()) {
 
             String correctAnswer =
