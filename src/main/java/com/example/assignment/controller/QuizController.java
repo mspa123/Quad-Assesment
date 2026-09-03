@@ -1,20 +1,21 @@
 package com.example.assignment.controller;
 
-import com.example.assignment.Dto.QuestionResponse;
+import com.example.assignment.Dto.QuizResponse;
+import com.example.assignment.service.QuizService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 public class QuizController {
 
+    private final QuizService quizService;
+
+    public QuizController(QuizService quizService) {
+        this.quizService = quizService;
+    }
+
     @GetMapping("/questions")
-    public QuestionResponse getQuestions() {
-        return new QuestionResponse(
-                "1",
-                "Hoeveel vingers steek ik op?",
-                List.of("1", "2", "3")
-        );
+    public QuizResponse getQuestions() {
+        return quizService.getQuestions();
     }
 }
