@@ -1,121 +1,208 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useEffect, useState } from 'react'
+import { getQuiz, submitAnswers } from './api/quizApi'
+import type {
+  CheckAnswersResponse,
+  Question,
+} from './types/quiz'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [quizId, setQuizId] = useState('')
+  const [questions, setQuestions] = useState<Question[]>([])
+  const [selectedAnswers, setSelectedAnswers] =
+    useState<Record<string, string>>({})
+  const [result, setResult] =
+    useState<CheckAnswersResponse | null>(null)
+
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    loadQuiz()
+  }, [])
+
+  async function loadQuiz() {
+    try {
+      setLoading(true)
+      setError('')
+      setResult(null)
+      setSelectedAnswers({})
+
+      const quiz = await getQuiz()
+
+      setQuizId(quiz.quizId)
+      setQuestions(quiz.questions)
+    } catch {
+      setError('Something went wrong while loading the quiz.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function selectAnswer(questionId: string, answer: string) {
+    if (result) {
+      return
+    }
+
+    setSelectedAnswers((currentAnswers) => ({
+      ...currentAnswers,
+      [questionId]: answer,
+    }))
+  }
+
+  async function handleSubmit() {
+    const answers = Object.entries(selectedAnswers).map(
+      ([questionId, answer]) => ({
+        questionId,
+        answer,
+      })
+    )
+
+    try {
+      setError('')
+
+      const response = await submitAnswers(
+        quizId,
+        answers
+      )
+
+      setResult(response)
+    } catch {
+      setError('Something went wrong while checking your answers.')
+    }
+  }
+
+  function getQuestionResult(questionId: string) {
+    return result?.results.find(
+      (item) => item.questionId === questionId
+    )
+  }
+
+  const allQuestionsAnswered =
+    questions.length > 0 &&
+    Object.keys(selectedAnswers).length === questions.length
+
+  if (loading) {
+    return (
+      <main className="quiz-page">
+        <p>Loading quiz...</p>
+      </main>
+    )
+  }
+
+  if (error && questions.length === 0) {
+    return (
+      <main className="quiz-page">
+        <p>{error}</p>
+
+        <button onClick={loadQuiz}>
+          Try again
+        </button>
+      </main>
+    )
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
+    <main className="quiz-page">
+      <header>
+        <h1>Quiz</h1>
+
+        {!result && (
           <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+            Answer all {questions.length} questions.
           </p>
-        </div>
+        )}
+
+        {result && (
+          <div className="score">
+            Score: {result.score} / {result.total}
+          </div>
+        )}
+      </header>
+
+      {error && (
+        <p className="error">
+          {error}
+        </p>
+      )}
+
+      <section className="questions">
+        {questions.map((question, index) => {
+          const questionResult =
+            getQuestionResult(question.id)
+
+          return (
+            <article
+              className="question-card"
+              key={question.id}
+            >
+              <h2>
+                {index + 1}. {question.question}
+              </h2>
+
+              <div className="answers">
+                {question.answers.map((answer) => (
+                  <label
+                    className="answer"
+                    key={answer}
+                  >
+                    <input
+                      type="radio"
+                      name={question.id}
+                      value={answer}
+                      checked={
+                        selectedAnswers[question.id] === answer
+                      }
+                      disabled={result !== null}
+                      onChange={() =>
+                        selectAnswer(
+                          question.id,
+                          answer
+                        )
+                      }
+                    />
+
+                    <span>{answer}</span>
+                  </label>
+                ))}
+              </div>
+
+              {questionResult && (
+                <div className="answer-result">
+                  {questionResult.correct ? (
+                    <p>✓ Correct</p>
+                  ) : (
+                    <p>
+                      ✗ Incorrect. Correct answer:{' '}
+                      <strong>
+                        {questionResult.correctAnswer}
+                      </strong>
+                    </p>
+                  )}
+                </div>
+              )}
+            </article>
+          )
+        })}
+      </section>
+
+      {!result ? (
         <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+          className="primary-button"
+          disabled={!allQuestionsAnswered}
+          onClick={handleSubmit}
         >
-          Count is {count}
+          Check answers
         </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      ) : (
+        <button
+          className="primary-button"
+          onClick={loadQuiz}
+        >
+          Play again
+        </button>
+      )}
+    </main>
   )
 }
 
