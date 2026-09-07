@@ -13,6 +13,7 @@ De applicatie haalt vragen op uit Open Trivia API. De spring Boot backend zorgt 
 - Vite
 - JUnite
 - Mockito
+- Postman
 
 ## Functionaliteit
 - Trivia vragen ophalen en shufflen.
@@ -23,3 +24,21 @@ De applicatie haalt vragen op uit Open Trivia API. De spring Boot backend zorgt 
 - Service unit tests
 
 ## Backend starten
+Open een terminal in de hoofdmap van het project.
+
+### Windows
+./mvnw spring-boot:run
+
+De backend draait op http://localhost:8080
+
+## tests
+Open een terminal in de hoofdmap van het project
+mvn test
+
+## frontend install & start
+
+npm install
+
+npm run dev
+
+De frontend draait op http://localhost:5173
