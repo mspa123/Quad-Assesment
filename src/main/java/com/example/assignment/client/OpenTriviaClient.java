@@ -16,7 +16,7 @@ public class OpenTriviaClient {
 
     public OpenTriviaResponse getQuestions() {
         return restClient.get()
-                .uri("/api.php?amount=10&type=multiple")
+                .uri("/api.php?amount=5&type=multiple")
                 .retrieve()
                 .body(OpenTriviaResponse.class);
     }

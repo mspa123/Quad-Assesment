@@ -6,6 +6,7 @@ import com.example.assignment.client.OpenTriviaQuestion;
 import com.example.assignment.client.OpenTriviaResponse;
 import com.example.assignment.model.QuizSession;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,16 +40,32 @@ public class QuizService {
 
             String questionId = String.valueOf(i + 1);
 
-            List<String> answers = new ArrayList<>(question.incorrectAnswers());
-            answers.add(question.correctAnswer());
+            String decodedQuestion =
+                    HtmlUtils.htmlUnescape(question.question());
+
+            String decodedCorrectAnswer =
+                    HtmlUtils.htmlUnescape(question.correctAnswer());
+
+            List<String> answers = new ArrayList<>();
+
+            for (String incorrectAnswer : question.incorrectAnswers()) {
+                answers.add(
+                        HtmlUtils.htmlUnescape(incorrectAnswer)
+                );
+            }
+
+            answers.add(decodedCorrectAnswer);
 
             Collections.shuffle(answers);
 
-            correctAnswers.put(questionId, question.correctAnswer());
+            correctAnswers.put(
+                    questionId,
+                    decodedCorrectAnswer
+            );
 
             QuestionResponse questionResponse = new QuestionResponse(
                     questionId,
-                    question.question(),
+                    decodedQuestion,
                     answers
             );
 
@@ -71,7 +88,6 @@ public class QuizService {
 
         List<AnswerResult> results = new ArrayList<>();
         int score = 0;
-
 
         for (AnswerRequest submittedAnswer : request.answers()) {
 
