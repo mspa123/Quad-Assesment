@@ -1,0 +1,39 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f6f8;
+}
+
+.quiz-page {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.question-card,
+.error {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.answer {
+  display: block;
+  margin: 8px 0;
+  cursor: pointer;
+}
+
+.primary-button {
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.primary-button:disabled {
+  opacity: 0.5;
+}
+
+.score {
+  font-weight: bold;
+}
